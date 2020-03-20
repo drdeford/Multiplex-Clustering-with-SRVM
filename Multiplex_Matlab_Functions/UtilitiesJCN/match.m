@@ -1,0 +1,1 @@
+function m=match(idx,n,k)
