@@ -9,6 +9,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import numpy.linalg as LA
 import numpy as np
+from generate import er_multi
 
 sizes = [30,32,41,39]
 
@@ -16,9 +17,19 @@ probs = [[.5,.05,.05,.05],[.05,.5,.05,.05],[.05,.05,.5,.05],[.05,.05,.05,.5]]
 
 G = nx.stochastic_block_model(sizes, probs)
 
+n = 100
+k=5
+p=.05
+G = er_multi(n,k,p)
 
+pos = nx.circular_layout(nx.erdos_renyi_graph(n,p))
+
+#pos = {x:(pos[x[0]][0],pos[x[0]][1],x[1]) for x in G.nodes()}
+
+pos = {x:pos[x[0]] for x in G.nodes()}
 
 LM = (nx.laplacian_matrix(G)).todense()
+#LM = (nx.normalized_laplacian_matrix(G)).todense()
 
 LMva, LMve = LA.eigh(LM)
 
@@ -26,46 +37,23 @@ LMva, LMve = LA.eigh(LM)
 #plt.plot(np.sort(LMva),'*')
 #plt.show()
 
-k=4
+#k=5
 
-X = LMve[:,0:k]
+nc = 2
 
-
-kmeans = KMeans(n_clusters=k, random_state=0).fit(X)
-
-plt.figure()
-nx.draw(G, node_color = kmeans.labels_, cmap = 'tab20')
-plt.show()
+X = LMve[:,0:nc]
 
 
-"""import scipy.ndimage
-img1 = scipy.ndimage.imread('./pricehall.jpg', mode='L')
-img2 = scipy.ndimage.imread('./Pacific-University1.jpg', mode='L')
-img3 = scipy.ndimage.imread('./Plogo.png', mode='L')
-img1 = scipy.ndimage.imread('./izzy1.jpg', mode='L')
-img2 = scipy.ndimage.imread('./skye1.jpg', mode='L')
-img3 = scipy.ndimage.imread('./stata.jpg', mode='L')
-
-#asddfimg
-
-U, s, V = LA.svd(img3)
+kmeans = KMeans(n_clusters=nc, random_state=0).fit(X)
 
 
-for n in range(2,200,5):
-    #n=5 #make gif from several n
-    
-    
-    
-    
-    Sig = np.mat(np.eye(n)*s[:n])
-    newdata = U[:,:n]
-    newv = V[:n,:]
-    
+
+for i in range(k):
+
     plt.figure()
-    plt.imshow(np.dot(np.dot(newdata,Sig),newv),cmap='gray')
-    plt.savefig(f'./statagif/n{n}.png')
-    plt.close()
-"""
+    nx.draw(G.subgraph([x for x in G.nodes() if x[1]==i]),pos={z:(pos[z][0],pos[z][1]) for z in [x for x in G.nodes() if x[1]==i]}, node_color = list(kmeans.labels_)[i*n:(i+1)*n], cmap = 'tab20')
+    plt.show()
+
 
 
 
